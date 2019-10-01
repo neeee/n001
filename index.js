@@ -6,7 +6,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 
-app.use(express.static(path.resolve(`${__dirname}/../frontend/build/`)));
+app.use(express.static(path.resolve(`${__dirname}/../n001-frontend/build/`)));
 
 const storage = multer.diskStorage({
   destination: `${__dirname}/uploads/`,
