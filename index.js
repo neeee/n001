@@ -1,10 +1,12 @@
-const app = require('express')();
+const express = require('express');
+const app = express();
 const WebSocket = require('ws');
 const http = require('http');
 const multer = require('multer');
-const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
+
+app.use(express.static(path.resolve(`${__dirname}/../frontend/build/`)));
 
 const storage = multer.diskStorage({
   destination: `${__dirname}/uploads/`,
@@ -30,18 +32,27 @@ const store = {
   },
   set: function(key, value) {
     this[key] = value;
+    return value;
   }
 };
 
 app.post('/api', upload.single('photo'), (req, res) => {
-  store.set('lastImage', req.file.filename);
-  console.log(store);
-  const filePath = path.resolve(
-    `${__dirname}/uploads/${store.get('lastImage')}`
+  const filePath = store.set(
+    'lastImage',
+    path.resolve(`${__dirname}/uploads/${req.file.filename}`)
   );
-  wss.clients.forEach(client => {
-    client.send(filePath);
-  });
+
+  store.set('age', store.get('age') + parseInt(req.body.age));
+
+  wss.clients.forEach(client =>
+    client.send(
+      JSON.stringify({
+        lastImage: store.get('lastImage'),
+        age: store.get('age')
+      })
+    )
+  );
+  res.send('OK');
 });
 
 app.get('/api/images/', (req, res) => {
@@ -52,10 +63,9 @@ app.get('/api/images/', (req, res) => {
   res.sendFile(filePath);
 });
 
-app.get('/api/age', (req, res) => {});
-
-app.post('/api/numpeople/:num', (req, res) => {
-  store.set('numPeople', req.params.num);
+app.get('/api/numpeople/', (req, res) => {
+  console.log(req.query.num);
+  store.set('numPeople', req.query.num);
   wss.clients.forEach(client => {
     client.send(req.params.num);
   });
