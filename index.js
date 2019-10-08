@@ -71,4 +71,4 @@ app.get('/api/numpeople/', (req, res) => {
   });
 });
 
-server.listen(3001, () => console.log('listening…'));
+server.listen(80, () => console.log('listening…'));
